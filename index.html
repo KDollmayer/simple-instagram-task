@@ -1,49 +1,103 @@
 <!DOCTYPE html>
 <html>
-    <head>
+  <head> </head>
+  <body onload="selectChat()">
+    <ul id="messageList"></ul>
+    <div>
+      <label for="selectChat"></label>
+      <select
+        name="selectChat"
+        id="selectChat"
+        onchange="changeChatRoom()"
+      ></select>
+      <label for="author">Author </label>
+      <input id="author" />
+      <label for="message">Message </label>
+      <input id="message" />
+      <button onclick="handleOnClick()">Send</button>
+      <button onclick="getMessageList()">Refresh</button>
+    </div>
+    <script>
+      let username = "" // Add a generic username here
+      const url2 = `https://mock-data-api.firebaseio.com/webb21-chats.json`
+      let url = `https://mock-data-api.firebaseio.com/webb21-chats/${username}/messages.json`
 
-    </head>
-    <body>
-        <ul id="messageList">
+      const messageListContainer = document.getElementById("messageList")
+      const selectorInput = document.getElementById("selectChat")
 
-        </ul>
-        <div>
-            <label for="author">Author </label>
-            <input id="author" />
-            <label for="message">Message </label>
-            <input id="message" />
-            <button onclick="handleOnClick()">Send</button>
-            <button onclick="getMessageList()">Refresh</button>
-        </div>
-        <script>
-            const username = 'hassan' // Add a generic username here
-            const url = `https://mock-data-api.firebaseio.com/webb21-chats/${username}/messages.json`
-            const messageListContainer = document.getElementById("messageList")
+      function handleOnClick() {
+        event.preventDefault()
+        const authorInput = document.getElementById("author")
+        const messageInput = document.getElementById("message")
+        const author = authorInput.value
+        const message = messageInput.value
 
-            function handleOnClick() {
-                
-            }
+        sendMessage(author, message)
+      }
+      function selectChat() {
+        fetch(url2)
+          .then((res) => res.json())
+          .then((data) => {
+            renderChat(data)
+          })
+      }
+      function renderChat(data) {
+        Object.entries(data).forEach((item) => {
+          const chatId = item[0]
+          renderChatItem(chatId)
+        })
+      }
+      function renderChatItem(chatId) {
+        const opt = document.createElement("option")
 
-            function sendMessage(author, message) {
-               
-            }
+        opt.innerHTML = chatId
+        opt.value = chatId
 
-            function renderMessageItem(messageItem) {
-               
-            }
+        selectorInput.append(opt)
+      }
+      function changeChatRoom() {
+        username = selectorInput.value
 
-            function renderMessageList(data) {
-              
-            }
+        url = `https://mock-data-api.firebaseio.com/webb21-chats/${username}/messages.json`
+        getMessageList()
+      }
 
-            function getMessageList() {
+      function sendMessage(author, message) {
+        const payload = {
+          author: author,
+          message: message,
+        }
+        fetch(url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        }).then((res) => {
+          getMessageList()
+        })
+      }
 
-            }
+      function renderMessageItem(messageItem) {
+        const li = document.createElement("li")
+        li.innerText = `${messageItem.message} User: ${messageItem.author}`
+        messageListContainer.append(li)
+      }
 
-            getMessageList()
+      function renderMessageList(data) {
+        messageListContainer.innerHTML = ""
+        Object.entries(data).forEach((item) => {
+          console.log(item)
+          const messageItem = item[1]
+          renderMessageItem(messageItem)
+        })
+      }
 
-        </script>
-    </body>
+      function getMessageList() {
+        fetch(url)
+          .then((res) => res.json())
+          .then((data) => {
+            renderMessageList(data)
+          })
+      }
+    </script>
+  </body>
 </html>
-
-
